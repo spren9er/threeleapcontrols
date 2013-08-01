@@ -169,17 +169,17 @@ THREE.LeapControls = function(object) {
       var y = h.palmPosition[1];
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
-      var v = _this.object.position;
-      var n = new THREE.Vector3(v.z, 0, -v.x).normalize();
+      var t = new THREE.Vector3().subVectors(_this.object.position, _this.target); // translate
+      var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
       var matrixX = new THREE.Matrix4().makeRotationAxis(n, _this.rotateTransform(yDelta));
-      _this.object.position.applyMatrix4(matrixX);
+      _this.object.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back
 
-      // rotate around y-axis
+      // rotate around y-axis (translated by target vector)
       var x = h.palmPosition[0];
       if (!_rotateXLast) _rotateXLast = x;
       var xDelta = x - _rotateXLast;
       var matrixY = new THREE.Matrix4().makeRotationY(-_this.rotateTransform(xDelta));
-      _this.object.position.applyMatrix4(matrixY);
+      _this.object.position.sub(_this.target).applyMatrix4(matrixY).add(_this.target); // translate, rotate and translate back
       _this.object.lookAt(_this.target);
       
       _rotateYLast = y;
@@ -200,8 +200,9 @@ THREE.LeapControls = function(object) {
       var z = h.palmPosition[2];
       if (!_zoomZLast) _zoomZLast = z;
       var zDelta = z - _zoomZLast;
-      var factor = 1 + _this.zoomTransform(-zDelta)/_this.object.position.length();
-      _this.object.position.multiplyScalar(factor);
+      var t = new THREE.Vector3().subVectors(_this.object.position, _this.target); 
+      t.normalize().multiplyScalar(_this.zoomTransform(zDelta));
+      _this.object.position.sub(t);
 
       _zoomZLast   = z; 
       _rotateXLast = null;
