@@ -18,17 +18,31 @@
 
       #info {
         position: absolute;
-        width: 800px;
-        margin-left: -400px;
+        width: 700px;
+        margin-left: -350px;
         left: 50%;
         text-align: center;
+        overflow: hidden;
+      }
+
+      #container {
+        position: absolute;
+        display: block;
+        height: auto;
+        width: auto;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 5px;
+        overflow: hidden;
+        border: 1px solid #cccccc;
       }
 
       canvas {
-        margin: auto;
         display: block;
-        width: 99%;
-        border: 1px solid #cccccc;
+        margin: auto;
+        width: 100%;
       }
     </style>
     <script src="js/Detector.js"></script>
