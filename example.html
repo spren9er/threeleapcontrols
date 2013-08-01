@@ -11,32 +11,54 @@
         font-family: 'Fauna One', serif;
         font-size: 12px;
       }
+
       h3 {font-weight: normal;}
+
       a {color: red;}
-      #info {text-align: center;}
+
+      #info {
+        position: absolute;
+        width: 800px;
+        margin-left: -400px;
+        left: 50%;
+        text-align: center;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
     </style>
     <script src="js/Detector.js"></script>
     <script src="js/three.min.js"></script>
     <script src="js/leap.min.js"></script>
     <script src="LeapControls.js"></script>
     <script>
-      var container;
       var camera, controls, scene, renderer;
       var coords1, coords2, coords3;
 
       function init() {
+        // is webgl supported?
         if (!Detector.webgl) {
           Detector.addGetWebGLMessage();
           return false;
-        }
+        };
 
-        var origin = new THREE.Vector3(0, 0, 0);
+        // renderer
+        renderer = new THREE.WebGLRenderer({antialias: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        var container = document.getElementById('container');
+        container.appendChild(renderer.domElement);
+
+        // camera
         camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 10000);
         camera.position.x = 350;
         camera.position.y = 350;
         camera.position.z = 350;
+        var origin = new THREE.Vector3(0, 0, 0);
         camera.lookAt(origin);
 
+        // leap controls
         controls = new THREE.LeapControls(camera);
 
         controls.rotateEnabled  = true;
@@ -56,13 +78,7 @@
         controls.panRightHanded = false; // for left-handed person
 
         // world
-        scene = new THREE.Scene();
-
-        // renderer
-        renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        container = document.getElementById('container');
-        container.appendChild(renderer.domElement);
+        scene = new THREE.Scene();        
 
         // camera target coordinate system
         coords1 = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 75, 0xcccccc);
@@ -71,7 +87,7 @@
         scene.add(coords1);
         scene.add(coords2);
         scene.add(coords3);
-        
+
         // world coordinate system (thin dashed helping lines)
         var lineGeometry = new THREE.Geometry();
         var vertArray = lineGeometry.vertices;
@@ -96,7 +112,7 @@
         light.position = camera.position;
         scene.add(light);
 
-        // resize event
+        // listen to resize event
         window.addEventListener('resize', onWindowResize, false);
 
         // render (if no leap motion controller is detected, then this call is needed in order to see the plot)
@@ -115,16 +131,15 @@
         });                 
       };
 
+      function render() {
+        renderer.render(scene, camera);
+      };
+
       function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        controls.handleResize();
         render();
-      };
-
-      function render() {
-        renderer.render(scene, camera);
       };
     </script>   
   </head>

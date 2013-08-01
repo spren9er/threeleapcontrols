@@ -5,15 +5,13 @@
  * 
  */
 
-THREE.LeapControls = function(object, domElement) {
+THREE.LeapControls = function(object) {
   var _this = this;
 
   this.object = object;
-  this.domElement = (domElement !== undefined) ? domElement : document;
 
   // api
   this.enabled = true;
-  this.screen  = {left: 0, top: 0, width: 0, height: 0};
   this.target  = new THREE.Vector3(0, 0, 0);
   this.step    = (object.position.z == 0 ? Math.pow(10, (Math.log(object.near) + Math.log(object.far)) / Math.log(10)) / 10.0 : object.position.z);
 
@@ -163,17 +161,6 @@ THREE.LeapControls = function(object, domElement) {
   };
 
   // methods
-  this.handleResize = function() {
-    if (this.domElement === document) {
-      this.screen.left   = 0;
-      this.screen.top    = 0;
-      this.screen.width  = window.innerWidth;
-      this.screen.height = window.innerHeight;
-    } else {
-      this.screen = this.domElement.getBoundingClientRect();
-    }
-  };
-
   this.rotateCamera = function(frame) {
     if (_this.rotateEnabled && _this.applyGesture(frame, 'rotate')) {
       var h = _this.hand(frame, 'rotate');
@@ -270,8 +257,6 @@ THREE.LeapControls = function(object, domElement) {
       _this.panCamera(frame);
     };
   };
-
-  this.handleResize();
 };
 
 THREE.LeapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
