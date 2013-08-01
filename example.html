@@ -77,20 +77,21 @@
         camera.lookAt(origin);
 
         // leap controls
+        var speedFactor = 2;
         controls = new THREE.LeapControls(camera);
 
         controls.rotateEnabled  = true;
-        controls.rotateSpeed    = 1.5;
+        controls.rotateSpeed    = speedFactor*1.5;
         controls.rotateHands    = 1;
         controls.rotateFingers  = [2, 3];
         
         controls.zoomEnabled    = true;
-        controls.zoomSpeed      = 3.0;
+        controls.zoomSpeed      = speedFactor*3.0;
         controls.zoomHands      = 1;
         controls.zoomFingers    = [4, 5];
         
         controls.panEnabled     = true;
-        controls.panSpeed       = 1.0;
+        controls.panSpeed       = speedFactor*1.0;
         controls.panHands       = 2;
         controls.panFingers     = [6, 12];
         controls.panRightHanded = false; // for left-handed person
