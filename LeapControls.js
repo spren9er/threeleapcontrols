@@ -258,5 +258,3 @@ THREE.LeapControls = function(object) {
     };
   };
 };
-
-THREE.LeapControls.prototype = Object.create(THREE.EventDispatcher.prototype);
