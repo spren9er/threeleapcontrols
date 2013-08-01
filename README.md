@@ -1,5 +1,5 @@
-threeleapcontrols ・ Leap Controls for Three.js
-===============================================
+threeleapcontrols
+=================
 
 ## Introduction
 
