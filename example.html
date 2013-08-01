@@ -115,13 +115,13 @@
         var coords = new THREE.Line(lineGeometry, lineMaterial);
         scene.add(coords);
 
-        // material for torus
+        // material for torus knot
         var solidMaterial = new THREE.MeshLambertMaterial({color: 0xefefef});
         var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x555555, wireframe: true, transparent: true}); 
         var material = [solidMaterial, wireframeMaterial]; 
 
-        // torus
-        var torus = THREE.SceneUtils.createMultiMaterialObject(new THREE.TorusGeometry(20, 10, 16, 40), material);
+        // torus knot
+        var torus = THREE.SceneUtils.createMultiMaterialObject(new THREE.TorusKnotGeometry(28, 6, 400, 25, 2, 3), material);
         torus.rotation.x = Math.PI/2;
         scene.add(torus);
 
