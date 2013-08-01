@@ -165,7 +165,7 @@ THREE.LeapControls = function(object) {
     if (_this.rotateEnabled && _this.applyGesture(frame, 'rotate')) {
       var h = _this.hand(frame, 'rotate');
 
-      // rotate around axis in xy-plane which is orthogonal to camera vector
+      // rotate around axis in xy-plane (in target coordinate system) which is orthogonal to camera vector
       var y = h.palmPosition[1];
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
@@ -174,7 +174,7 @@ THREE.LeapControls = function(object) {
       var matrixX = new THREE.Matrix4().makeRotationAxis(n, _this.rotateTransform(yDelta));
       _this.object.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back
 
-      // rotate around y-axis (translated by target vector)
+      // rotate around y-axis translated by target vector
       var x = h.palmPosition[0];
       if (!_rotateXLast) _rotateXLast = x;
       var xDelta = x - _rotateXLast;
