@@ -86,7 +86,7 @@ this.panFingers        = [6, 12];
 this.panRightHanded    = true;
 ```
 
-**Note:** The location of your palm position will be used for control actions.
+**Note:** The location of your palm position will be used for all control actions.
 
 ### Example
 
