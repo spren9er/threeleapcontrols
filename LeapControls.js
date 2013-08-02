@@ -170,9 +170,12 @@ THREE.LeapControls = function(object) {
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
       var t = new THREE.Vector3().subVectors(_this.object.position, _this.target); // translate
-      var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
-      var matrixX = new THREE.Matrix4().makeRotationAxis(n, _this.rotateTransform(yDelta));
-      _this.object.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back
+      newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + _this.rotateTransform(yDelta);
+      if (0 < newAngle && newAngle < Math.PI) {
+        var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
+        var matrixX = new THREE.Matrix4().makeRotationAxis(n, _this.rotateTransform(yDelta));
+        _this.object.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back        
+      }
 
       // rotate around y-axis translated by target vector
       var x = h.palmPosition[0];
