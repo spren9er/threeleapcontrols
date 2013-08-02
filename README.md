@@ -51,8 +51,13 @@ controls.panRightHanded = false;
 You can disable panning by setting `panEnabled` to `false`. Increase or decrease the speed of panning by adjusting
 `panSpeed`. You can set the number of hands with option `panHands`, i.e. the gesture is only triggered if the number of hands over your leap is equal to 
 the specified `panHands`. It is possible to use a range (array of length 2), e.g. if `[1, 2]` is given, panning will be done, if one or two hands
-are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling
-the camera. The default values are
+are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. 
+
+By default horizontal rotating is bounded to a range of π, meaning the angle between the camera-to-target vector and the y-axis is greater than 0 and less than π. You can modify the range by setting `rotateMin` and `rotateMax`. Vertical rotating is not limited.
+
+You can set the minimum and maximum distances for zooming with `zoomMin` and `zoomMax`.
+
+The default values are
 
 ```javascript
 // rotation
@@ -61,6 +66,8 @@ this.rotateSpeed       = 1.0;
 this.rotateHands       = 1;
 this.rotateFingers     = [2, 3]; 
 this.rotateRightHanded = true;
+this.rotateMin         = 0;
+this.rotateMax         = Math.PI;
 
 // zoom
 this.zoomEnabled       = true;
@@ -68,6 +75,8 @@ this.zoomSpeed         = 1.0;
 this.zoomHands         = 1;
 this.zoomFingers       = [4, 5];
 this.zoomRightHanded   = true;
+this.zoomMin           = camera.near;
+this.zoomMax           = camera.far;
 
 // pan
 this.panEnabled        = true;
@@ -77,8 +86,7 @@ this.panFingers        = [6, 12];
 this.panRightHanded    = true;
 ```
 
-**Note:** The location of your palm position will be used for controlling.
-
+**Note:** The location of your palm position will be used for control actions.
 
 ### Example
 

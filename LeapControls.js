@@ -25,6 +25,8 @@ THREE.LeapControls = function(object) {
   this.rotateHands       = 1;
   this.rotateFingers     = [2, 3]; 
   this.rotateRightHanded = true;
+  this.rotateMin         = 0;
+  this.rotateMax         = Math.PI;
   
   // zoom
   this.zoomEnabled       = true;
@@ -32,6 +34,8 @@ THREE.LeapControls = function(object) {
   this.zoomHands         = 1;
   this.zoomFingers       = [4, 5];
   this.zoomRightHanded   = true;
+  this.zoomMin           = _this.object.near;
+  this.zoomMax           = _this.object.far;
   
   // pan
   this.panEnabled        = true;
@@ -170,12 +174,13 @@ THREE.LeapControls = function(object) {
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
       var t = new THREE.Vector3().subVectors(_this.object.position, _this.target); // translate
-      newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + _this.rotateTransform(yDelta);
-      if (0 < newAngle && newAngle < Math.PI) {
+      angleDelta = _this.rotateTransform(yDelta);
+      newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + angleDelta;
+      if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
         var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
-        var matrixX = new THREE.Matrix4().makeRotationAxis(n, _this.rotateTransform(yDelta));
+        var matrixX = new THREE.Matrix4().makeRotationAxis(n, angleDelta);
         _this.object.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back        
-      }
+      };
 
       // rotate around y-axis translated by target vector
       var x = h.palmPosition[0];
@@ -203,9 +208,13 @@ THREE.LeapControls = function(object) {
       var z = h.palmPosition[2];
       if (!_zoomZLast) _zoomZLast = z;
       var zDelta = z - _zoomZLast;
-      var t = new THREE.Vector3().subVectors(_this.object.position, _this.target); 
-      t.normalize().multiplyScalar(_this.zoomTransform(zDelta));
-      _this.object.position.sub(t);
+      var t = new THREE.Vector3().subVectors(_this.object.position, _this.target);
+      lengthDelta = _this.zoomTransform(zDelta);
+      newLength = t.length() - lengthDelta;
+      if (_this.zoomMin < newLength && newLength < _this.zoomMax) {
+        t.normalize().multiplyScalar(lengthDelta);
+        _this.object.position.sub(t);        
+      };
 
       _zoomZLast   = z; 
       _rotateXLast = null;
