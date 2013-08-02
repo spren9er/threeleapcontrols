@@ -10,10 +10,20 @@ your 3D scene.
 
 ## Requirements 
 
-- a leap motion controller ([http://leapmotion.com](http://leapmotion.com))
+- a [leap motion](http://leapmotion.com) controller
+- [leapjs](http://js.leapmotion.com) (javascript sdk for leap motion controller)
+- [Three.js](http://threejs.org) (javascript library for creating and displaying 3D computer graphics on a browser)
 - a browser which supports WebGL, e.g. Google Chrome
 
+
 ## Usage
+
+First, you load the necessary javascript files in your HTML document
+```html
+<script src="three.min.js"></script>
+<script src="leap.min.js"></script>
+<script src="LeapControls.js"></script>
+```
 
 You create a `scene`, a `camera` and a `renderer` with Three.js.
 Then connect your `camera` of your `scene` with leap controls by setting
@@ -53,7 +63,7 @@ You can disable panning by setting `panEnabled` to `false`. Increase or decrease
 the specified `panHands`. It is possible to use a range (array of length 2), e.g. if `[1, 2]` is given, panning will be done, if one or two hands
 are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. 
 
-By default horizontal rotating is bounded to a range of π, meaning the angle between the camera-to-target vector and the y-axis is greater than 0 and less than π. You can modify the range by setting `rotateMin` and `rotateMax`. Vertical rotating is not limited.
+By default vertical rotating is bounded to a range of π, meaning the angle between the camera-to-target vector and the y-axis is greater than 0 and less than π. You can modify the range by setting `rotateMin` and `rotateMax`. Horizontal rotating is not limited.
 
 You can set the minimum and maximum distances for zooming with `zoomMin` and `zoomMax`.
 
