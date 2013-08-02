@@ -231,12 +231,8 @@ THREE.LeapControls = function(object) {
       var v = _this.object.localToWorld(new THREE.Vector3(_this.panTransform(xDelta), _this.panTransform(yDelta), _this.panTransform(zDelta)));
       v.sub(_this.object.position);
 
-      _this.object.position.x -= v.x;
-      _this.object.position.y -= v.y;
-      _this.object.position.z -= v.z;
-      _this.target.x -= v.x;
-      _this.target.y -= v.y;
-      _this.target.z -= v.z;      
+      _this.object.position.sub(v);
+      _this.target.sub(v);
 
       _panXLast    = x;
       _panYLast    = y;
