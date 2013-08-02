@@ -1,18 +1,18 @@
 /*
  * @author Torsten Sprenger / http://torstensprenger.com
  *
- * Leap Camera Controls (http://leapmotion.com)
+ * Leap Object Controls (http://leapmotion.com)
  * 
  */
 
-THREE.LeapControls = function(camera) {
+THREE.LeapObjectControls = function(object, camera) {
   var _this = this;
 
+  this.object = object;
   this.camera = camera;
 
   // api
   this.enabled = true;
-  this.target  = new THREE.Vector3(0, 0, 0);
   this.step    = (camera.position.z == 0 ? Math.pow(10, (Math.log(camera.near) + Math.log(camera.far)) / Math.log(10)) / 10.0 : camera.position.z);
 
   // `...Hands`       : integer or range given as an array of length 2
@@ -21,21 +21,21 @@ THREE.LeapControls = function(camera) {
 
   // rotation
   this.rotateEnabled     = true;
-  this.rotateSpeed       = 1.0;
+  this.rotateSpeed       = 4.0;
   this.rotateHands       = 1;
   this.rotateFingers     = [2, 3]; 
   this.rotateRightHanded = true;
   this.rotateMin         = 0;
   this.rotateMax         = Math.PI;
   
-  // zoom
-  this.zoomEnabled       = true;
-  this.zoomSpeed         = 1.0;
-  this.zoomHands         = 1;
-  this.zoomFingers       = [4, 5];
-  this.zoomRightHanded   = true;
-  this.zoomMin           = _this.camera.near;
-  this.zoomMax           = _this.camera.far;
+  // scale
+  this.scaleEnabled      = true;
+  this.scaleSpeed        = 1.0;
+  this.scaleHands        = 1;
+  this.scaleFingers      = [4, 5];
+  this.scaleRightHanded  = true;
+  this.scaleMin          = 0.1;
+  this.scaleMax          = 5;
   
   // pan
   this.panEnabled        = true;
@@ -47,7 +47,7 @@ THREE.LeapControls = function(camera) {
   // internals
   var _rotateXLast       = null;
   var _rotateYLast       = null;
-  var _zoomZLast         = null;
+  var _scaleZLast        = null;
   var _panXLast          = null;
   var _panYLast          = null;
   var _panZLast          = null;
@@ -57,8 +57,8 @@ THREE.LeapControls = function(camera) {
     return _this.rotateSpeed * THREE.Math.mapLinear(delta, -400, 400, -Math.PI, Math.PI);
   };
 
-  this.zoomTransform = function(delta) {
-    return _this.zoomSpeed * THREE.Math.mapLinear(delta, -400, 400, -_this.step, _this.step);
+  this.scaleTransform = function(delta) {
+    return _this.scaleSpeed * THREE.Math.mapLinear(delta, -400, 400, -2, 2);
   };
 
   this.panTransform = function(delta) {
@@ -85,18 +85,18 @@ THREE.LeapControls = function(camera) {
           };
         };
         break;
-      case 'zoom':
-        if (_this.zoomHands instanceof Array) {
-          if (_this.zoomFingers instanceof Array) {
-            if (_this.zoomHands[0] <= hl && hl <= _this.zoomHands[1] && _this.zoomFingers[0] <= fl && fl <= _this.zoomFingers[1]) return true;
+      case 'scale':
+        if (_this.scaleHands instanceof Array) {
+          if (_this.scaleFingers instanceof Array) {
+            if (_this.scaleHands[0] <= hl && hl <= _this.scaleHands[1] && _this.scaleFingers[0] <= fl && fl <= _this.scaleFingers[1]) return true;
           } else {
-            if (_this.zoomHands[0] <= hl && hl <= _this.zoomHands[1] && _this.zoomFingers == fl) return true;
+            if (_this.scaleHands[0] <= hl && hl <= _this.scaleHands[1] && _this.scaleFingers == fl) return true;
           };
         } else {
-          if (_this.zoomFingers instanceof Array) {
-            if (_this.zoomHands == hl && _this.zoomFingers[0] <= fl && fl <= _this.zoomFingers[1]) return true;
+          if (_this.scaleFingers instanceof Array) {
+            if (_this.scaleHands == hl && _this.scaleFingers[0] <= fl && fl <= _this.scaleFingers[1]) return true;
           } else {
-            if (_this.zoomHands == hl && _this.zoomFingers == fl) return true;
+            if (_this.scaleHands == hl && _this.scaleFingers == fl) return true;
           };
         };
         break;
@@ -143,8 +143,8 @@ THREE.LeapControls = function(camera) {
               return lh;
             };
             break;
-          case 'zoom':
-            if (_this.zoomRightHanded) {
+          case 'scale':
+            if (_this.scaleRightHanded) {
               return rh;
             } else {
               return lh;
@@ -165,7 +165,7 @@ THREE.LeapControls = function(camera) {
   };
 
   // methods
-  this.rotateCamera = function(frame) {
+  this.rotateObject = function(frame) {
     if (_this.rotateEnabled && _this.applyGesture(frame, 'rotate')) {
       var h = _this.hand(frame, 'rotate');
 
@@ -173,26 +173,51 @@ THREE.LeapControls = function(camera) {
       var y = h.palmPosition[1];
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
-      var t = new THREE.Vector3().subVectors(_this.camera.position, _this.target); // translate
+      var t = new THREE.Vector3().subVectors(_this.camera.position, _this.object.position);
       angleDelta = _this.rotateTransform(yDelta);
       newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + angleDelta;
       if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
+        // var n = new THREE.Vector3(1, _this.object.position.y, (-t.x - t.y*_this.object.position.y) / t.z).normalize();
         var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
-        var matrixX = new THREE.Matrix4().makeRotationAxis(n, angleDelta);
-        _this.camera.position = t.applyMatrix4(matrixX).add(_this.target); // rotate and translate back        
+        // var quaternion = new THREE.Quaternion().setFromAxisAngle(n, angleDelta);
+        // var rot = new THREE.Euler().setFromQuaternion(quaternion);
+
+        // var matrixX = new THREE.Matrix4().makeRotationAxis(n, angleDelta);
+        // var m = new THREE.Vector3(0, 1, 0).rotateOnAxis(n, angleDelta);
+        // var m = new THREE.Vector3(0, 1, 0).applyMatrix4(matrixX);
+        // console.log(m.rotation);
+        // _this.object.rotation.add(m.rotation);
+        // _this.object.applyEuler(m.rotation, m.eulerOrder);
+        // _this.object.position.applyEuler(_this.camera.rotation, _this.camera.rotation.order);
+        // var objPos = new THREE.Vector3().copy(_this.object.position);
+        // _this.object.position.set(0, 0, 0);
+        // rot = _this.object.rotation;
+        // _this.object.translateX(-_this.object.position.x);
+        // _this.object.translateY(-_this.object.position.y);
+        // _this.object.translateZ(-_this.object.position.z);
+        // _this.object.rotation.x = 0;
+        // _this.object.rotation.y = 0;
+        // _this.object.rotation.z = 0;
+        // _this.object.rotateOnAxis(n, angleDelta);
+        // _this.object.rotation.x += rot.x;
+        // _this.object.rotation.y += rot.y;
+        // _this.object.rotation.z += rot.z;
+        // _this.object.applyMatrix(matrixX);
+        // _this.object.translateX(objPos.x);
+        // _this.object.translateY(objPos.y);
+        // _this.object.translateZ(objPos.z);
+        // _this.object.position = new THREE.Vector3(0, 0, 0).applyMatrix4(matrixX).add(_this.object.position); // translate, rotate and translate back        
       };
 
-      // rotate around y-axis translated by target vector
+      // rotate around y-axis 
       var x = h.palmPosition[0];
       if (!_rotateXLast) _rotateXLast = x;
       var xDelta = x - _rotateXLast;
-      var matrixY = new THREE.Matrix4().makeRotationY(-_this.rotateTransform(xDelta));
-      _this.camera.position.sub(_this.target).applyMatrix4(matrixY).add(_this.target); // translate, rotate and translate back
-      _this.camera.lookAt(_this.target);
+      _this.object.rotation.y += _this.rotateTransform(xDelta);
       
       _rotateYLast = y;
       _rotateXLast = x;
-      _zoomZLast   = null;
+      _scaleZLast  = null;
       _panXLast    = null;
       _panYLast    = null;
       _panZLast    = null;      
@@ -202,32 +227,30 @@ THREE.LeapControls = function(camera) {
     };
   };
 
-  this.zoomCamera = function(frame) {
-    if (_this.zoomEnabled && _this.applyGesture(frame, 'zoom')) {
-      var h = _this.hand(frame, 'zoom');
+  this.scaleObject = function(frame) {
+    if (_this.scaleEnabled && _this.applyGesture(frame, 'scale')) {
+      var h = _this.hand(frame, 'scale');
       var z = h.palmPosition[2];
-      if (!_zoomZLast) _zoomZLast = z;
-      var zDelta = z - _zoomZLast;
-      var t = new THREE.Vector3().subVectors(_this.camera.position, _this.target);
-      lengthDelta = _this.zoomTransform(zDelta);
-      newLength = t.length() - lengthDelta;
-      if (_this.zoomMin < newLength && newLength < _this.zoomMax) {
-        t.normalize().multiplyScalar(lengthDelta);
-        _this.camera.position.sub(t);        
+      if (!_scaleZLast) _scaleZLast = z;
+      var zDelta = z - _scaleZLast;
+      scaleDelta = _this.scaleTransform(zDelta);
+      var newScale = _this.object.scale.x + scaleDelta;
+      if (_this.scaleMin < newScale && newScale < _this.scaleMax) {
+        _this.object.scale = new THREE.Vector3(newScale, newScale, newScale);
       };
 
-      _zoomZLast   = z; 
+      _scaleZLast  = z; 
       _rotateXLast = null;
       _rotateYLast = null;
       _panXLast    = null;
       _panYLast    = null;
       _panZLast    = null;
     } else {
-      _zoomZLast = null; 
+      _scaleZLast  = null; 
     };
   };
 
-  this.panCamera = function(frame) {
+  this.panObject = function(frame) {
     if (_this.panEnabled && _this.applyGesture(frame, 'pan')) {
       var h = _this.hand(frame, 'pan');
       var x = h.palmPosition[0];
@@ -242,16 +265,14 @@ THREE.LeapControls = function(camera) {
 
       var v = _this.camera.localToWorld(new THREE.Vector3(_this.panTransform(xDelta), _this.panTransform(yDelta), _this.panTransform(zDelta)));
       v.sub(_this.camera.position);
-
-      _this.camera.position.sub(v);
-      _this.target.sub(v);
+      _this.object.position.add(v);
 
       _panXLast    = x;
       _panYLast    = y;
       _panZLast    = z;
       _rotateXLast = null;
       _rotateYLast = null;
-      _zoomZLast   = null;
+      _scaleZLast  = null;
     } else {
       _panXLast = null;
       _panYLast = null;
@@ -261,9 +282,9 @@ THREE.LeapControls = function(camera) {
 
   this.update = function(frame) {
     if (_this.enabled) {
-      _this.rotateCamera(frame);
-      _this.zoomCamera(frame);
-      _this.panCamera(frame);
+      _this.rotateObject(frame);
+      _this.scaleObject(frame);
+      _this.panObject(frame);
     };
   };
 };
