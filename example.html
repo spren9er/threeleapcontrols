@@ -149,9 +149,9 @@
         torus.position.x = 50;
         torus.position.y = 70;
         torus.position.z = -100;
-        // torus.rotation.x = 50;
-        // torus.rotation.y = 70;
-        // torus.rotation.z = -100;
+        torus.rotation.x = 50;
+        torus.rotation.y = 70;
+        torus.rotation.z = -100;
 
         // torus.rotation.z = 2;
         // camera.lookAt(new THREE.Vector3(270, -10, -55));
@@ -189,27 +189,19 @@
 
         // leap loop
         var switchControls;
-        Leap.loop({enableGestures: true}, function(frame) {
-          var n = frame.gestures.length;
-          if (n > 0) {
-            for (var i = 0; i < n; i++) {
-              var gesture = frame.gestures[i];
-              if (gesture.type == 'circle' && gesture.state == 'stop' && frame.pointables.length == 1) {
-                var d = frame.pointables[0].direction;
-                var n = gesture.normal;
-                var angle = new THREE.Vector3(d[0], d[1], d[2]).angleTo(new THREE.Vector3(n[0], n[1], n[2]));
-                if (angle < Math.PI/4) {
-                  $("#overlay").html("Switched to object mode!");
-                  $("#overlay").show().fadeOut(2000);
-                  switchControls = true;
-                } else {                
-                  $("#overlay").html("Switched to global mode!");
-                  $("#overlay").show().fadeOut(2000);
-                  switchControls = false;
-                }
-              };
-            };
-          };
+        Leap.loop(function(frame) {
+          if (detectClap(frame)) console.log('clapped');
+
+                //   $("#overlay").html("Switched to object mode!");
+                //   $("#overlay").show().fadeOut(2000);
+                //   switchControls = true;
+                // } else {                
+                //   $("#overlay").html("Switched to global mode!");
+                //   $("#overlay").show().fadeOut(2000);
+                //   switchControls = false;
+                // }
+
+          // torus.rotation.y += 0.01;
 
           // custom modifications (here: show coordinate system always on target)
           coords1.position = controls.target;
@@ -217,7 +209,7 @@
           coords3.position = controls.target;
 
           // update scene
-          if (switchControls) {
+          if (!switchControls) {
             object_controls.update(frame);
           } else {
             controls.update(frame);  
@@ -225,6 +217,23 @@
           render();
         });                 
       };
+
+      function detectSwipe(frame) {
+        if (frame.hands.length == 2) {
+          var h1 = frame.hands[0];
+          var h2 = frame.hands[1];
+          var lh, rh;
+          if (h1.palmPosition.x < h2.palmPosition.x) {
+            lh = h1;
+            rh = h2;
+          } else {
+            lh = h2;
+            rh = h1;
+          };
+          if (lh.palmVelocity[0] > 200 && rh.palmVelocity[0] < -200) return true;
+        };
+        return false;
+      }
 
       function render() {
         renderer.render(scene, camera);

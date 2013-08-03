@@ -176,9 +176,16 @@ THREE.LeapObjectControls = function(object, camera) {
       var t = new THREE.Vector3().subVectors(_this.camera.position, _this.object.position);
       angleDelta = _this.rotateTransform(yDelta);
       newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + angleDelta;
-      if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
+      // if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
         // var n = new THREE.Vector3(1, _this.object.position.y, (-t.x - t.y*_this.object.position.y) / t.z).normalize();
         var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
+        var rotationMatrix = new THREE.Matrix4();
+        rotationMatrix.makeRotationAxis(n, angleDelta);
+        rotationMatrix.multiply(_this.object.matrix);
+        // _this.object.matrix = rotationMatrix;
+        // _this.object.rotation.setEulerFromRotationMatrix(object.matrix, object.eulerOrder);
+        // _this.object.rotation.setFromRotationMatrix(rotationMatrix, _this.camera.rotation.order);
+
         // var quaternion = new THREE.Quaternion().setFromAxisAngle(n, angleDelta);
         // var rot = new THREE.Euler().setFromQuaternion(quaternion);
 
@@ -207,7 +214,7 @@ THREE.LeapObjectControls = function(object, camera) {
         // _this.object.translateY(objPos.y);
         // _this.object.translateZ(objPos.z);
         // _this.object.position = new THREE.Vector3(0, 0, 0).applyMatrix4(matrixX).add(_this.object.position); // translate, rotate and translate back        
-      };
+      // };
 
       // rotate around y-axis 
       var x = h.palmPosition[0];
