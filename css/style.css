@@ -1,0 +1,55 @@
+body {
+  font-family: 'Fauna One', serif;
+  font-size: 12px;
+}
+
+h3 {font-weight: normal;}
+
+a {color: red;}
+
+#info {
+  position: absolute;
+  width: 800px;
+  margin-left: -400px;
+  left: 50%;
+  text-align: center;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#container {
+  position: absolute;
+  display: block;
+  height: auto;
+  width: auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 5px;
+  overflow: hidden;
+  border: 1px solid #cccccc;
+  z-index: 0;
+}
+
+canvas {
+  display: block;
+  margin: auto;
+  width: 100%;
+}
+
+#overlay {
+  display: none;
+  position: absolute;
+  color: #333333;
+  z-index: 2;
+  width: 400px;
+  height: 100px;
+  margin-left: -200px;
+  margin-top: -50px;
+  top: 50%;
+  left: 50%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
+}
