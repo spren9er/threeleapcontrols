@@ -5,8 +5,8 @@ threeleapcontrols
 
 [Three.js](http://threejs.org) provides several control classes in order to interact with your 3D world.
 They are located under `three.js/examples/js/controls` in your Three.js directory.
-With **threeleapcontrols** you can use your leap motion controller to rotate, zoom and pan 
-your 3D scene.
+With **threeleapcontrols** you can use your leap motion controller to rotate, zoom/scale and pan 
+any camera or object in your 3D scene.
 
 ## Requirements 
 
@@ -22,14 +22,14 @@ First, you load the necessary javascript files in your HTML document
 ```html
 <script src="three.min.js"></script>
 <script src="leap.min.js"></script>
-<script src="LeapControls.js"></script>
+<script src="LeapCameraControls.js"></script>
 ```
 
 You create a `scene`, a `camera` and a `renderer` with Three.js.
-Then connect your `camera` of your `scene` with leap controls by setting
+Then connect your `camera` of your `scene` with leap camera controls by setting
 
 ```javascript
-controls = new THREE.LeapControls(camera);
+cameraControls = new THREE.LeapCameraControls(camera);
 ```
 
 In your `Leap.loop` you need to call the `update` method on `frame`. After that it is necessary to `render`
@@ -40,28 +40,52 @@ Leap.loop(function(frame){
   // maybe some modifications to your scene
   // ...
 
-  controls.update(frame); // rotating, zooming & panning
+  cameraControls.update(frame); // rotating, zooming & panning
+  renderer.render(scene, camera);
+});
+```
+
+In order to `rotate`, `scale` and `pan` an arbitrary object in your scene, load the leap object controls
+
+```html
+<script src="LeapObjectControls.js"></script>
+```
+and then connect the `camera` and your object, e.g. a `cube` by
+
+```javascript
+cubeControls = new THREE.LeapObjectControls(camera, cube);
+```
+
+The corresponding `Leap.loop` looks like
+
+```javascript
+Leap.loop(function(frame){
+  // maybe some modifications to your scene
+  // ...
+
+  cubeControls.update(frame); // rotating, scaling & panning
   renderer.render(scene, camera);
 });
 ```
 
 ### Configuration
 
-For actions `rotate`, `zoom` and `pan` there are several options which you can specify.
+There are several options for your camera actions `rotate`, `zoom` and `pan`  available.
 Here, we are setting the `pan` options (you can set the same attributes for rotating and panning):
 
 ```javascript
-controls.panEnabled     = true;
-controls.panSpeed       = 1.0;
-controls.panHands       = 2;
-controls.panFingers     = [6, 12];
-controls.panRightHanded = false;
+controls.panEnabled      = true;
+controls.panSpeed        = 1.0;
+controls.panHands        = 2;
+controls.panFingers      = [6, 12];
+controls.panRightHanded  = true; // right-handed
+controls.panHandPosition = true; // palm position used
 ```
 
 You can disable panning by setting `panEnabled` to `false`. Increase or decrease the speed of panning by adjusting
 `panSpeed`. You can set the number of hands with option `panHands`, i.e. the gesture is only triggered if the number of hands over your leap is equal to 
-the specified `panHands`. It is possible to use a range (array of length 2), e.g. if `[1, 2]` is given, panning will be done, if one or two hands
-are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. 
+the specified `panHands`. It is possible to use a range of numbers (array of length 2 with integers), e.g. if `[1, 2]` is given, panning will be done, if one or two hands
+are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. If you set `panFingers` to 1 or `[1, 1]` and `panHandPosition` to `false`, then the position of your finger tip will be used (instead of the position of your palm).
 
 By default vertical rotating is bounded to a range of π, meaning the angle between the camera-to-target vector and the y-axis is greater than 0 and less than π. You can modify the range by setting `rotateMin` and `rotateMax`. Horizontal rotating is not limited.
 
@@ -70,33 +94,38 @@ You can set the minimum and maximum distances for zooming with `zoomMin` and `zo
 The default values are
 
 ```javascript
-// rotation
-this.rotateEnabled     = true;
-this.rotateSpeed       = 1.0;
-this.rotateHands       = 1;
-this.rotateFingers     = [2, 3]; 
-this.rotateRightHanded = true;
-this.rotateMin         = 0;
-this.rotateMax         = Math.PI;
+  // rotation
+this.rotateEnabled       = true;
+this.rotateSpeed         = 1.0;
+this.rotateHands         = 1;
+this.rotateFingers       = [2, 3]; 
+this.rotateRightHanded   = true;
+this.rotateHandPosition  = true;
+this.rotateMin           = 0;
+this.rotateMax           = Math.PI;
 
 // zoom
-this.zoomEnabled       = true;
-this.zoomSpeed         = 1.0;
-this.zoomHands         = 1;
-this.zoomFingers       = [4, 5];
-this.zoomRightHanded   = true;
-this.zoomMin           = camera.near;
-this.zoomMax           = camera.far;
+this.zoomEnabled         = true;
+this.zoomSpeed           = 1.0;
+this.zoomHands           = 1;
+this.zoomFingers         = [4, 5];
+this.zoomRightHanded     = true;
+this.zoomHandPosition    = true;
+this.zoomMin             = camera.near;
+this.zoomMax             = camera.far;
 
 // pan
-this.panEnabled        = true;
-this.panSpeed          = 1.0;
-this.panHands          = 2;
-this.panFingers        = [6, 12];
-this.panRightHanded    = true;
+this.panEnabled          = true;
+this.panSpeed            = 1.0;
+this.panHands            = 2;
+this.panFingers          = [6, 12];
+this.panRightHanded      = true;
+this.panHandPosition     = true;
 ```
 
-**Note:** The location of your palm position will be used for all control actions.
+In your leap object controls the zoom options are scale options, i.e. `zoomEnabled` will be `scaleEnabled`, and so on.
+
+**Note**: Rotating objects in `LeapObjectControls` is not yet finished!
 
 ### Example
 

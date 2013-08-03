@@ -5,64 +5,80 @@
  * 
  */
 
-THREE.LeapControls = function(camera) {
+THREE.LeapCameraControls = function(camera) {
   var _this = this;
 
   this.camera = camera;
 
   // api
-  this.enabled = true;
-  this.target  = new THREE.Vector3(0, 0, 0);
-  this.step    = (camera.position.z == 0 ? Math.pow(10, (Math.log(camera.near) + Math.log(camera.far)) / Math.log(10)) / 10.0 : camera.position.z);
+  this.enabled      = true;
+  this.target       = new THREE.Vector3(0, 0, 0);
+  this.step         = (camera.position.z == 0 ? Math.pow(10, (Math.log(camera.near) + Math.log(camera.far)) / Math.log(10)) / 10.0 : camera.position.z);
+  this.fingerFactor = 2;
 
   // `...Hands`       : integer or range given as an array of length 2
   // `...Fingers`     : integer or range given as an array of length 2
   // `...RightHanded` : boolean indicating whether to use left or right hand for controlling (if number of hands > 1)
+  // `...HandPosition`: boolean indication whether to use palm position or finger tip position (if number of fingers == 1)
 
   // rotation
-  this.rotateEnabled     = true;
-  this.rotateSpeed       = 1.0;
-  this.rotateHands       = 1;
-  this.rotateFingers     = [2, 3]; 
-  this.rotateRightHanded = true;
-  this.rotateMin         = 0;
-  this.rotateMax         = Math.PI;
+  this.rotateEnabled       = true;
+  this.rotateSpeed         = 1.0;
+  this.rotateHands         = 1;
+  this.rotateFingers       = [2, 3]; 
+  this.rotateRightHanded   = true;
+  this.rotateHandPosition  = true;
+  this.rotateMin           = 0;
+  this.rotateMax           = Math.PI;
   
   // zoom
-  this.zoomEnabled       = true;
-  this.zoomSpeed         = 1.0;
-  this.zoomHands         = 1;
-  this.zoomFingers       = [4, 5];
-  this.zoomRightHanded   = true;
-  this.zoomMin           = _this.camera.near;
-  this.zoomMax           = _this.camera.far;
+  this.zoomEnabled         = true;
+  this.zoomSpeed           = 1.0;
+  this.zoomHands           = 1;
+  this.zoomFingers         = [4, 5];
+  this.zoomRightHanded     = true;
+  this.zoomHandPosition    = true;
+  this.zoomMin             = _this.camera.near;
+  this.zoomMax             = _this.camera.far;
   
   // pan
-  this.panEnabled        = true;
-  this.panSpeed          = 1.0;
-  this.panHands          = 2;
-  this.panFingers        = [6, 12];
-  this.panRightHanded    = true;
+  this.panEnabled          = true;
+  this.panSpeed            = 1.0;
+  this.panHands            = 2;
+  this.panFingers          = [6, 12];
+  this.panRightHanded      = true;
+  this.panHandPosition     = true;
   
   // internals
-  var _rotateXLast       = null;
-  var _rotateYLast       = null;
-  var _zoomZLast         = null;
-  var _panXLast          = null;
-  var _panYLast          = null;
-  var _panZLast          = null;
+  var _rotateXLast         = null;
+  var _rotateYLast         = null;
+  var _zoomZLast           = null;
+  var _panXLast            = null;
+  var _panYLast            = null;
+  var _panZLast            = null;
 
   // helpers
+  this.transformFactor = function(action) {
+    switch(action) {
+      case 'rotate':
+        return _this.rotateSpeed * (_this.rotateHandPosition ? 1 : _this.fingerFactor);
+      case 'zoom':
+        return _this.zoomSpeed * (_this.zoomHandPosition ? 1 : _this.fingerFactor);
+      case 'pan':
+        return _this.panSpeed * (_this.panHandPosition ? 1 : _this.fingerFactor);
+    };
+  };
+
   this.rotateTransform = function(delta) {
-    return _this.rotateSpeed * THREE.Math.mapLinear(delta, -400, 400, -Math.PI, Math.PI);
+    return _this.transformFactor('rotate') * THREE.Math.mapLinear(delta, -400, 400, -Math.PI, Math.PI);
   };
 
   this.zoomTransform = function(delta) {
-    return _this.zoomSpeed * THREE.Math.mapLinear(delta, -400, 400, -_this.step, _this.step);
+    return _this.transformFactor('zoom') * THREE.Math.mapLinear(delta, -400, 400, -_this.step, _this.step);
   };
 
   this.panTransform = function(delta) {
-    return _this.panSpeed * THREE.Math.mapLinear(delta, -400, 400, -_this.step, _this.step);
+    return _this.transformFactor('pan') * THREE.Math.mapLinear(delta, -400, 400, -_this.step, _this.step);
   };
 
   this.applyGesture = function(frame, action) {
@@ -142,21 +158,18 @@ THREE.LeapControls = function(camera) {
             } else {
               return lh;
             };
-            break;
           case 'zoom':
             if (_this.zoomRightHanded) {
               return rh;
             } else {
               return lh;
             };
-            break;
           case 'pan':
             if (_this.panRightHanded) {
               return rh;
             } else {
               return lh;
             };
-            break;
         };
       };
     };
@@ -164,13 +177,27 @@ THREE.LeapControls = function(camera) {
     return false;
   };
 
+  this.position = function(frame, action) {
+    // assertion: if `...HandPosition` is false, then `...Fingers` needs to be 1 or [1, 1]
+    var h;
+    switch(action) {
+      case 'rotate':
+        h = _this.hand(frame, 'rotate');
+        return (_this.rotateHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+      case 'zoom':
+        h = _this.hand(frame, 'zoom');
+        return (_this.zoomHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+      case 'pan':
+        h = _this.hand(frame, 'pan');
+        return (_this.panHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+    };
+  };
+
   // methods
   this.rotateCamera = function(frame) {
     if (_this.rotateEnabled && _this.applyGesture(frame, 'rotate')) {
-      var h = _this.hand(frame, 'rotate');
-
       // rotate around axis in xy-plane (in target coordinate system) which is orthogonal to camera vector
-      var y = h.palmPosition[1];
+      var y = _this.position(frame, 'rotate')[1];
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
       var t = new THREE.Vector3().subVectors(_this.camera.position, _this.target); // translate
@@ -183,7 +210,7 @@ THREE.LeapControls = function(camera) {
       };
 
       // rotate around y-axis translated by target vector
-      var x = h.palmPosition[0];
+      var x = _this.position(frame, 'rotate')[0];
       if (!_rotateXLast) _rotateXLast = x;
       var xDelta = x - _rotateXLast;
       var matrixY = new THREE.Matrix4().makeRotationY(-_this.rotateTransform(xDelta));
@@ -204,8 +231,7 @@ THREE.LeapControls = function(camera) {
 
   this.zoomCamera = function(frame) {
     if (_this.zoomEnabled && _this.applyGesture(frame, 'zoom')) {
-      var h = _this.hand(frame, 'zoom');
-      var z = h.palmPosition[2];
+      var z = _this.position(frame, 'zoom')[2];
       if (!_zoomZLast) _zoomZLast = z;
       var zDelta = z - _zoomZLast;
       var t = new THREE.Vector3().subVectors(_this.camera.position, _this.target);
@@ -229,10 +255,9 @@ THREE.LeapControls = function(camera) {
 
   this.panCamera = function(frame) {
     if (_this.panEnabled && _this.applyGesture(frame, 'pan')) {
-      var h = _this.hand(frame, 'pan');
-      var x = h.palmPosition[0];
-      var y = h.palmPosition[1];
-      var z = h.palmPosition[2];
+      var x = _this.position(frame, 'pan')[0];
+      var y = _this.position(frame, 'pan')[1];
+      var z = _this.position(frame, 'pan')[2];
       if (!_panXLast) _panXLast = x;
       if (!_panYLast) _panYLast = y;
       if (!_panZLast) _panZLast = z;

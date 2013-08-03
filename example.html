@@ -18,8 +18,8 @@
 
       #info {
         position: absolute;
-        width: 700px;
-        margin-left: -350px;
+        width: 800px;
+        margin-left: -400px;
         left: 50%;
         text-align: center;
         overflow: hidden;
@@ -67,11 +67,14 @@
     <script src="js/jquery.min.js"></script>
     <script src="js/three.min.js"></script>
     <script src="js/leap.min.js"></script>
-    <script src="LeapControls.js"></script>
+    <script src="LeapCameraControls.js"></script>
     <script src="LeapObjectControls.js"></script>
     <script>
-      var camera, controls, scene, renderer;
+      var camera, scene, renderer;
+      var cameraControls, torusControls;
       var coords1, coords2, coords3;
+      var switchOff;
+
 
       function init() {
         // is webgl supported?
@@ -95,26 +98,25 @@
         camera.lookAt(origin);
 
         // leap camera controls
-        var speedFactor = 2;
-        controls = new THREE.LeapControls(camera);
+        cameraControls = new THREE.LeapCameraControls(camera);
 
-        controls.rotateEnabled  = true;
-        controls.rotateSpeed    = speedFactor*1.5;
-        controls.rotateHands    = 1;
-        controls.rotateFingers  = [2, 3];
+        cameraControls.rotateEnabled  = true;
+        cameraControls.rotateSpeed    = 3;
+        cameraControls.rotateHands    = 1;
+        cameraControls.rotateFingers  = [2, 3];
         
-        controls.zoomEnabled    = true;
-        controls.zoomSpeed      = speedFactor*3.0;
-        controls.zoomHands      = 1;
-        controls.zoomFingers    = [4, 5];
-        controls.zoomMin        = 50;
-        controls.zoomMax        = 2000;
+        cameraControls.zoomEnabled    = true;
+        cameraControls.zoomSpeed      = 6;
+        cameraControls.zoomHands      = 1;
+        cameraControls.zoomFingers    = [4, 5];
+        cameraControls.zoomMin        = 50;
+        cameraControls.zoomMax        = 2000;
         
-        controls.panEnabled     = true;
-        controls.panSpeed       = speedFactor*1.0;
-        controls.panHands       = 2;
-        controls.panFingers     = [6, 12];
-        controls.panRightHanded = false; // for left-handed person
+        cameraControls.panEnabled     = true;
+        cameraControls.panSpeed       = 2;
+        cameraControls.panHands       = 2;
+        cameraControls.panFingers     = [6, 12];
+        cameraControls.panRightHanded = false; // for left-handed person
 
         // world
         scene = new THREE.Scene();        
@@ -143,38 +145,27 @@
 
         // torus knot
         var torus = THREE.SceneUtils.createMultiMaterialObject(new THREE.TorusKnotGeometry(28, 6, 400, 25, 2, 3), material);
-        var torus = new THREE.Mesh(new THREE.CubeGeometry(80, 80, 80), new THREE.MeshNormalMaterial());
-        // torus.rotation.x = Math.PI/2;
+        torus.rotation.x = Math.PI/2;
         scene.add(torus);
-        torus.position.x = 50;
-        torus.position.y = 70;
-        torus.position.z = -100;
-        torus.rotation.x = 50;
-        torus.rotation.y = 70;
-        torus.rotation.z = -100;
 
-        // torus.rotation.z = 2;
-        // camera.lookAt(new THREE.Vector3(270, -10, -55));
-        object_controls = new THREE.LeapObjectControls(torus, camera);
+        // leap torus controls
+        torusControls = new THREE.LeapObjectControls(camera, torus);
 
-        object_controls.rotateEnabled  = true;
-        object_controls.rotateSpeed    = speedFactor*1.5;
-        object_controls.rotateHands    = 1;
-        object_controls.rotateFingers  = [2, 3];
+        torusControls.rotateEnabled  = true;
+        torusControls.rotateSpeed    = 3;
+        torusControls.rotateHands    = 1;
+        torusControls.rotateFingers  = [2, 3];
         
-        object_controls.zoomEnabled    = true;
-        object_controls.zoomSpeed      = speedFactor*3.0;
-        object_controls.zoomHands      = 1;
-        object_controls.zoomFingers    = [4, 5];
-        object_controls.zoomMin        = 50;
-        object_controls.zoomMax        = 2000;
+        torusControls.scaleEnabled   = true;
+        torusControls.scaleSpeed     = 3;
+        torusControls.scaleHands     = 1;
+        torusControls.scaleFingers   = [4, 5];
         
-        object_controls.panEnabled     = true;
-        object_controls.panSpeed       = speedFactor*3.0;
-        object_controls.panHands       = 2;
-        object_controls.panFingers     = [6, 12];
-        object_controls.panRightHanded = false; // for left-handed person
-
+        torusControls.panEnabled     = true;
+        torusControls.panSpeed       = 3;
+        torusControls.panHands       = 2;
+        torusControls.panFingers     = [6, 12];
+        torusControls.panRightHanded = false; // for left-handed person
 
         // light
         var light = new THREE.PointLight(0xefefef);
@@ -188,52 +179,68 @@
         render();
 
         // leap loop
-        var switchControls;
+        var globalControls = true;
         Leap.loop(function(frame) {
-          if (detectClap(frame)) console.log('clapped');
-
-                //   $("#overlay").html("Switched to object mode!");
-                //   $("#overlay").show().fadeOut(2000);
-                //   switchControls = true;
-                // } else {                
-                //   $("#overlay").html("Switched to global mode!");
-                //   $("#overlay").show().fadeOut(2000);
-                //   switchControls = false;
-                // }
-
-          // torus.rotation.y += 0.01;
+          var swiped = detectSwipe(frame);
+          if (swiped && globalControls) {
+            showOverlay("Switched to Object Mode");
+            globalControls = false;
+            noSwitching();
+          } else if (swiped && !globalControls) {
+            showOverlay("Switched to Camera Mode");
+            globalControls = true;
+            noSwitching();
+          }
 
           // custom modifications (here: show coordinate system always on target)
-          coords1.position = controls.target;
-          coords2.position = controls.target;
-          coords3.position = controls.target;
+          coords1.position = cameraControls.target;
+          coords2.position = cameraControls.target;
+          coords3.position = cameraControls.target;
 
           // update scene
-          if (!switchControls) {
-            object_controls.update(frame);
+          if (globalControls) {
+            cameraControls.update(frame);  
           } else {
-            controls.update(frame);  
+            torusControls.update(frame);
           }
           render();
         });                 
       };
 
+      function showOverlay(text) {
+        $("#overlay").html(text);
+        $("#overlay").show().fadeOut(2000);
+      };
+
+      function noSwitching() {
+        // deactivates switching for 2 seconds
+        switchOff = true;
+        setTimeout(function(){
+          switchOff = false;
+        }, 2000);
+      };
+
       function detectSwipe(frame) {
-        if (frame.hands.length == 2) {
+        return (detectUpSwipe(frame) || detectDownSwipe(frame));
+      };
+
+      function detectUpSwipe(frame) {
+        if (frame.hands.length == 2 && frame.pointables.length == 0 && !switchOff) {
           var h1 = frame.hands[0];
           var h2 = frame.hands[1];
-          var lh, rh;
-          if (h1.palmPosition.x < h2.palmPosition.x) {
-            lh = h1;
-            rh = h2;
-          } else {
-            lh = h2;
-            rh = h1;
-          };
-          if (lh.palmVelocity[0] > 200 && rh.palmVelocity[0] < -200) return true;
+          if (h1.palmVelocity[2] < -700 || h2.palmVelocity[2] < -700) return true;
         };
         return false;
-      }
+      };
+
+      function detectDownSwipe(frame) {
+        if (frame.hands.length == 2 && frame.pointables.length == 0 && !switchOff) {
+          var h1 = frame.hands[0];
+          var h2 = frame.hands[1];
+          if (h1.palmVelocity[2] > 700 || h2.palmVelocity[2] > 700) return true;
+        };
+        return false;
+      };
 
       function render() {
         renderer.render(scene, camera);
@@ -250,8 +257,15 @@
 
   <body onload="init()">
     <div id="info">
-      <h3><b>threeleapcontrols</b> ・ <a href="http://leapmotion.com">Leap</a> Controls for <a href="http://threejs.org" target="_blank">Three.js</a></h3>
-      <b>ROTATING</b> ➞ 1 Hand &amp; 2-3 Fingers ・  <b>ZOOMING</b> ➞ 1 Hand &amp; 4-5 Fingers  ・  <b>PANNING</b> ➞ 2 Hands &amp; 6-10 Fingers
+      <h3><b>threeleapcontrols</b> ・ <a href="http://leapmotion.com">Leap</a> Controls for <a href="http://threejs.org">Three.js</a></h3>
+
+      <h4>Camera &amp; Object Controls</h4>
+
+      <b>ROTATING</b> ➞ 1 Hand &amp; 2-3 Fingers ・  <b>ZOOMING/SCALING</b> ➞ 1 Hand &amp; 4-5 Fingers  ・  <b>PANNING</b> ➞ 2 Hands &amp; 6-10 Fingers
+
+      <h4>Switch between Camera &amp; Object Mode</h4>
+
+      <b>SWITCH</b> ➞ 2 Hands &amp; 0 Fingers &amp; Push/Pull 1 Hand fast
     </div>
     <div id="container"></div>
     <div id="overlay"></div>
