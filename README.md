@@ -125,7 +125,7 @@ this.panHandPosition     = true;
 
 In your leap object controls the zoom options are scale options, i.e. `zoomEnabled` will be `scaleEnabled`, and so on.
 
-**Note**: Rotating objects in `LeapObjectControls` is not yet finished!
+**Note**: Rotating objects with `LeapObjectControls` is not yet finished!
 
 ### Example
 
