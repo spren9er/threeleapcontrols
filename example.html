@@ -186,6 +186,35 @@
         return false;
       };
 
+      var cursor;
+      function detectCursor(frame) {
+        // translate page coords to element coords
+        var offset = $(renderer.domElement).offset();  
+        var eltx = pagex - offset.left;
+        var elty = pagey - offset.top;
+        
+        // translate client coords into viewport
+        var vpx = (eltx/container.offsetWidth)*2 - 1;
+        var vpy = -(elty/container.offsetHeight)*2 + 1;
+        
+        var vector = new THREE.Vector3(vpx, vpy, 0.5);
+        new THREE.Projector().unprojectVector(vector, camera);
+      
+        var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+        // var intersects = ray.intersectScene(scene);
+        
+        // if (intersects.length > 0) {      
+        //   var i = 0;
+        //   while(!intersects[i].object.visible) i++;
+        //   var intersected = intersects[i];
+        //   var mat = new THREE.Matrix4().getInverse(intersected.object.matrixWorld);
+        //   var point = mat.multiplyVector3(intersected.point);
+          
+        //   return intersected.object;
+        //   // return [intersected.object, intersected.point, intersected.face.normal];
+        // } else return false;        
+      };
+
       function render() {
         renderer.render(scene, camera);
       };
