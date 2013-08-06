@@ -1,6 +1,7 @@
 body {
   font-family: 'Fauna One', serif;
   font-size: 12px;
+  cursor: none;
 }
 
 h3 {font-weight: normal;}

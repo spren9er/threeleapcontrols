@@ -14,12 +14,10 @@
     <script src="LeapCameraControls.js"></script>
     <script src="LeapObjectControls.js"></script>
     <script>
-      var camera, scene, renderer, projector;
-      var objects = [];
-      var cameraControls, torusControls;
+      var camera, scene, renderer, projector, light;
+      var objects = [], objectsControls = [], cameraControls;
       var coords1, coords2, coords3;
-      var switchOff;
-
+      var lastControlsIndex = -1, controlsIndex = -1, index = -1;
 
       function init() {
         // is webgl supported?
@@ -86,38 +84,47 @@
         var coords = new THREE.Line(lineGeometry, lineMaterial);
         scene.add(coords);
 
-        // material for torus knot
-        var solidMaterial = new THREE.MeshLambertMaterial({color: 0xefefef});
-        var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x555555, wireframe: true, transparent: true}); 
-        var material = [solidMaterial, wireframeMaterial]; 
+        // cubes
+        for (var i = 0; i < 10; i ++) {
+          var geometry = new THREE.CubeGeometry(Math.random()*60, Math.random()*60, Math.random()*60);
+          var object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0xefefef}));
+          object.position.x = Math.random()* 400 - 200;
+          object.position.y = Math.random()* 300 - 150;
+          object.position.z = Math.random()* 200 - 100;
 
-        // torus knot
-        var torus = THREE.SceneUtils.createMultiMaterialObject(new THREE.TorusKnotGeometry(28, 6, 400, 25, 2, 3), material);
-        torus.rotation.x = Math.PI/2;
-        scene.add(torus);
-        objects.push(torus);
+          object.rotation.x = Math.random()*2*Math.PI;
+          object.rotation.y = Math.random()*2*Math.PI;
+          object.rotation.z = Math.random()*2*Math.PI;
 
-        // leap torus controls
-        torusControls = new THREE.LeapObjectControls(camera, torus);
+          object.castShadow = true;
+          object.receiveShadow = true;
 
-        torusControls.rotateEnabled  = true;
-        torusControls.rotateSpeed    = 3;
-        torusControls.rotateHands    = 1;
-        torusControls.rotateFingers  = [2, 3];
-        
-        torusControls.scaleEnabled   = true;
-        torusControls.scaleSpeed     = 3;
-        torusControls.scaleHands     = 1;
-        torusControls.scaleFingers   = [4, 5];
-        
-        torusControls.panEnabled     = true;
-        torusControls.panSpeed       = 3;
-        torusControls.panHands       = 2;
-        torusControls.panFingers     = [6, 12];
-        torusControls.panRightHanded = false; // for left-handed person
+          // leap object controls
+          var objectControls = new THREE.LeapObjectControls(camera, object);
+
+          objectControls.rotateEnabled  = true;
+          objectControls.rotateSpeed    = 3;
+          objectControls.rotateHands    = 1;
+          objectControls.rotateFingers  = [2, 3];
+          
+          objectControls.scaleEnabled   = true;
+          objectControls.scaleSpeed     = 3;
+          objectControls.scaleHands     = 1;
+          objectControls.scaleFingers   = [4, 5];
+          
+          objectControls.panEnabled     = true;
+          objectControls.panSpeed       = 3;
+          objectControls.panHands       = 2;
+          objectControls.panFingers     = [6, 12];
+          objectControls.panRightHanded = false; // for left-handed person
+
+          scene.add(object);
+          objects.push(object);
+          objectsControls.push(objectControls);
+        };
 
         // light
-        var light = new THREE.PointLight(0xefefef);
+        light = new THREE.PointLight(0xefefef);
         light.position = camera.position;
         scene.add(light);
 
@@ -128,94 +135,65 @@
         render();
 
         // leap loop
-        var globalControls = true;
         Leap.loop(function(frame) {
-          var swiped = detectSwipe(frame);
-          if (swiped && globalControls) {
-            showOverlay("Switched to Object Mode");
-            globalControls = false;
-            noSwitching();
-          } else if (swiped && !globalControls) {
-            showOverlay("Switched to Camera Mode");
-            globalControls = true;
-            noSwitching();
-          }
-
           // show cursor
           showCursor(frame);
 
-          // focus object
-          var object = focusObject(frame);
-          if (object) {
-            // torusControls.update(frame);
-            globalControls = false;
-            console.log('found');
+          // set correct camera control
+          controlsIndex = focusObject(frame);
+          if (index == -1) {
+            cameraControls.update(frame);
+          } else {
+            objectsControls[index].update(frame);
           };
 
-          // custom modifications (here: show coordinate system always on target)
+          // custom modifications (here: show coordinate system always on target and light movement)
           coords1.position = cameraControls.target;
           coords2.position = cameraControls.target;
           coords3.position = cameraControls.target;
+          light.position = camera.position;
 
-          // update scene
-          if (globalControls) {
-            cameraControls.update(frame);  
-          } else {
-            torusControls.update(frame);
-          }
           render();
         });                 
       };
 
+      setInterval(function(){
+        if (lastControlsIndex == controlsIndex) {
+          if (index != controlsIndex && controlsIndex > -2) {
+            // new object or camera to control
+            if (controlsIndex == -1) {
+              showOverlay("Switched to Camera Mode");
+            } else {
+              showOverlay("Switched to Object Mode: Object " + controlsIndex);
+            };
+            if (controlsIndex > -2) index = controlsIndex;
+          };
+        }; 
+        lastControlsIndex = controlsIndex;
+      }, 500);
+      
       function showOverlay(text) {
         $("#overlay").html(text);
-        $("#overlay").show().fadeOut(2000);
-      };
-
-      function noSwitching() {
-        // deactivates switching for 2 seconds
-        switchOff = true;
-        setTimeout(function(){
-          switchOff = false;
-        }, 2000);
-      };
-
-      function detectSwipe(frame) {
-        return (detectUpSwipe(frame) || detectDownSwipe(frame));
-      };
-
-      function detectUpSwipe(frame) {
-        if (frame.hands.length == 2 && frame.pointables.length == 0 && !switchOff) {
-          var h1 = frame.hands[0];
-          var h2 = frame.hands[1];
-          if (h1.palmVelocity[2] < -700 || h2.palmVelocity[2] < -700) return true;
-        };
-        return false;
-      };
-
-      function detectDownSwipe(frame) {
-        if (frame.hands.length == 2 && frame.pointables.length == 0 && !switchOff) {
-          var h1 = frame.hands[0];
-          var h2 = frame.hands[1];
-          if (h1.palmVelocity[2] > 700 || h2.palmVelocity[2] > 700) return true;
-        };
-        return false;
-      };
+        $("#overlay").show().fadeOut(800);
+      };      
 
       function showCursor(frame) {
-        // if (frame.interactionBox) console.log(frame.interactionBox.center);
-        // if (frame.interactionBox) console.log(frame.interactionBox.width);
-        // if (frame.interactionBox) console.log(frame.interactionBox.height);
-
+        var width = 150;
+        var height = 150;
+        var minHeight = 100;
         var hl = frame.hands.length;
         var fl = frame.pointables.length;
 
         if (hl == 1 && fl == 1) {
           var f = frame.pointables[0];
           var cont = $(renderer.domElement);
-          var offset = cont.offset();  
-          var x = offset.left + THREE.Math.mapLinear(f.tipPosition[0], -200, 200, 0, cont.width());
-          var y = offset.top + THREE.Math.mapLinear(f.tipPosition[1], 400, 0, 0, cont.height());
+          var offset = cont.offset();
+          var fTPX = f.tipPosition[0];
+          var fTPY = f.tipPosition[1];
+          var fX = (fTPX > width ? width - 1 : (fTPX < -width ? -width + 1 : fTPX));
+          var fY = (fTPY > 2*height ? 2*height - 1 : (fTPY < minHeight ? minHeight + 1 : fTPY));
+          var x = offset.left + THREE.Math.mapLinear(fX, -width, width, 0, cont.width());
+          var y = offset.top + THREE.Math.mapLinear(fY, 2*height, minHeight, 0, cont.height());
           $("#cursor").css('left', x - (($("#cursor").width() - 1)/2 + 1));
           $("#cursor").css('top', y - (($("#cursor").height() - 1)/2 + 1));
         } else {
@@ -225,45 +203,39 @@
       };
 
       function focusObject(frame) {
+        var width = 150;
+        var height = 150;
+        var minHeight = 100;
         var hl = frame.hands.length;
         var fl = frame.pointables.length;
 
         if (hl == 1 && fl == 1) {
           var f = frame.pointables[0];
           var cont = $(renderer.domElement);
-          var x = THREE.Math.mapLinear(f.tipPosition[0], -200, 200, 0, cont.width());
-          var y = THREE.Math.mapLinear(f.tipPosition[1], 400, 0, 0, cont.height());
+          var fTPX = f.tipPosition[0];
+          var fTPY = f.tipPosition[1];
+          var fX = (fTPX > width ? width - 1 : (fTPX < -width ? -width + 1 : fTPX));
+          var fY = (fTPY > 2*height ? 2*height - 1 : (fTPY < minHeight ? minHeight + 1 : fTPY));
+          var x = THREE.Math.mapLinear(fX, -width, width, 0, cont.width());
+          var y = THREE.Math.mapLinear(fY, 2*height, minHeight, 0, cont.height());
           var vpx = (x/cont.width())*2 - 1;
           var vpy = -(y/cont.height())*2 + 1;
-
-          // console.log(vpx, vpy);
-          
           var vector = new THREE.Vector3(vpx, vpy, 0.5);
           projector.unprojectVector(vector, camera);
-
           var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
           var intersects = raycaster.intersectObjects(objects);
-          
-          if (intersects.length > 0) {      
+          if (intersects.length > 0) { 
             var i = 0;
             while(!intersects[i].object.visible) i++;
             var intersected = intersects[i];
-            // console.log(intersected);
-            return intersected.object;
-
-            // var point = mat.multiplyVector3(intersected.point);
-            // var mat = new THREE.Matrix4().getInverse(intersected.object.matrixWorld);
-            // return [intersected.object, intersected.point, intersected.face.normal];
-          } else return false;
+            return objects.indexOf(intersected.object);
+          } else {
+            return -1;
+          };
         };
 
-        return false;
-      }
-
-      // console.log([$(window).width(), $(window).height()]);
-      // window.addEventListener('mousemove', function(event) {
-      //   console.log([event.pageX, event.pageY]);
-      // });
+        return -2;
+      };
 
       function render() {
         renderer.render(scene, camera);
@@ -288,7 +260,7 @@
 
       <h4>Switch between Camera &amp; Object Mode</h4>
 
-      <b>SWITCH</b> ➞ 2 Hands &amp; 0 Fingers &amp; Push/Pull 1 Hand fast
+      <b>SWITCH</b> ➞ 1 Hand &amp; 1 Finger &amp; Choose object or nothing
     </div>
     <div id="container"></div>
     <div id="overlay"></div>
