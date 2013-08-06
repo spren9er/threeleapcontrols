@@ -53,3 +53,16 @@ canvas {
   font-weight: bold;
   font-size: 26px;
 }
+
+#cursor {
+  position: absolute;
+  left: -1000px;
+  top: -1000px;
+  z-index: 100;
+  width: 11px;
+  height: 11px;
+  background-color: #ff0000;
+  border-radius: 6px; 
+  -moz-border-radius: 6px; 
+  -webkit-border-radius: 6px; 
+}

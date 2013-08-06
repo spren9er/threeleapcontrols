@@ -14,7 +14,8 @@
     <script src="LeapCameraControls.js"></script>
     <script src="LeapObjectControls.js"></script>
     <script>
-      var camera, scene, renderer;
+      var camera, scene, renderer, projector;
+      var objects = [];
       var cameraControls, torusControls;
       var coords1, coords2, coords3;
       var switchOff;
@@ -63,7 +64,10 @@
         cameraControls.panRightHanded = false; // for left-handed person
 
         // world
-        scene = new THREE.Scene();        
+        scene = new THREE.Scene(); 
+
+        // projector
+        projector = new THREE.Projector();       
 
         // camera target coordinate system
         coords1 = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), origin, 75, 0xcccccc);
@@ -91,6 +95,7 @@
         var torus = THREE.SceneUtils.createMultiMaterialObject(new THREE.TorusKnotGeometry(28, 6, 400, 25, 2, 3), material);
         torus.rotation.x = Math.PI/2;
         scene.add(torus);
+        objects.push(torus);
 
         // leap torus controls
         torusControls = new THREE.LeapObjectControls(camera, torus);
@@ -135,6 +140,17 @@
             globalControls = true;
             noSwitching();
           }
+
+          // show cursor
+          showCursor(frame);
+
+          // focus object
+          var object = focusObject(frame);
+          if (object) {
+            // torusControls.update(frame);
+            globalControls = false;
+            console.log('found');
+          };
 
           // custom modifications (here: show coordinate system always on target)
           coords1.position = cameraControls.target;
@@ -186,34 +202,68 @@
         return false;
       };
 
-      var cursor;
-      function detectCursor(frame) {
-        // translate page coords to element coords
-        var offset = $(renderer.domElement).offset();  
-        var eltx = pagex - offset.left;
-        var elty = pagey - offset.top;
-        
-        // translate client coords into viewport
-        var vpx = (eltx/container.offsetWidth)*2 - 1;
-        var vpy = -(elty/container.offsetHeight)*2 + 1;
-        
-        var vector = new THREE.Vector3(vpx, vpy, 0.5);
-        new THREE.Projector().unprojectVector(vector, camera);
-      
-        var ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
-        // var intersects = ray.intersectScene(scene);
-        
-        // if (intersects.length > 0) {      
-        //   var i = 0;
-        //   while(!intersects[i].object.visible) i++;
-        //   var intersected = intersects[i];
-        //   var mat = new THREE.Matrix4().getInverse(intersected.object.matrixWorld);
-        //   var point = mat.multiplyVector3(intersected.point);
-          
-        //   return intersected.object;
-        //   // return [intersected.object, intersected.point, intersected.face.normal];
-        // } else return false;        
+      function showCursor(frame) {
+        // if (frame.interactionBox) console.log(frame.interactionBox.center);
+        // if (frame.interactionBox) console.log(frame.interactionBox.width);
+        // if (frame.interactionBox) console.log(frame.interactionBox.height);
+
+        var hl = frame.hands.length;
+        var fl = frame.pointables.length;
+
+        if (hl == 1 && fl == 1) {
+          var f = frame.pointables[0];
+          var cont = $(renderer.domElement);
+          var offset = cont.offset();  
+          var x = offset.left + THREE.Math.mapLinear(f.tipPosition[0], -200, 200, 0, cont.width());
+          var y = offset.top + THREE.Math.mapLinear(f.tipPosition[1], 400, 0, 0, cont.height());
+          $("#cursor").css('left', x - (($("#cursor").width() - 1)/2 + 1));
+          $("#cursor").css('top', y - (($("#cursor").height() - 1)/2 + 1));
+        } else {
+          $("#cursor").css('left', -1000);
+          $("#cursor").css('top', -1000);
+        };
       };
+
+      function focusObject(frame) {
+        var hl = frame.hands.length;
+        var fl = frame.pointables.length;
+
+        if (hl == 1 && fl == 1) {
+          var f = frame.pointables[0];
+          var cont = $(renderer.domElement);
+          var x = THREE.Math.mapLinear(f.tipPosition[0], -200, 200, 0, cont.width());
+          var y = THREE.Math.mapLinear(f.tipPosition[1], 400, 0, 0, cont.height());
+          var vpx = (x/cont.width())*2 - 1;
+          var vpy = -(y/cont.height())*2 + 1;
+
+          // console.log(vpx, vpy);
+          
+          var vector = new THREE.Vector3(vpx, vpy, 0.5);
+          projector.unprojectVector(vector, camera);
+
+          var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+          var intersects = raycaster.intersectObjects(objects);
+          
+          if (intersects.length > 0) {      
+            var i = 0;
+            while(!intersects[i].object.visible) i++;
+            var intersected = intersects[i];
+            // console.log(intersected);
+            return intersected.object;
+
+            // var point = mat.multiplyVector3(intersected.point);
+            // var mat = new THREE.Matrix4().getInverse(intersected.object.matrixWorld);
+            // return [intersected.object, intersected.point, intersected.face.normal];
+          } else return false;
+        };
+
+        return false;
+      }
+
+      // console.log([$(window).width(), $(window).height()]);
+      // window.addEventListener('mousemove', function(event) {
+      //   console.log([event.pageX, event.pageY]);
+      // });
 
       function render() {
         renderer.render(scene, camera);
@@ -242,5 +292,6 @@
     </div>
     <div id="container"></div>
     <div id="overlay"></div>
+    <div id="cursor"></div>
   </body>
 </html>
