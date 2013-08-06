@@ -200,18 +200,17 @@ THREE.LeapObjectControls = function(camera, object) {
       var y = _this.position(frame, 'rotate')[1];
       if (!_rotateYLast) _rotateYLast = y;
       var yDelta = y - _rotateYLast;
-      // TODO: apply correct rotation to object
-      //
-      // var t = new THREE.Vector3().subVectors(_this.camera.position, _this.object.position);
-      // angleDelta = _this.rotateTransform(yDelta);
-      // newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + angleDelta;
-      // if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
-      //   var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
-      //   var rotationMatrix = new THREE.Matrix4();
-      //   rotationMatrix.makeRotationAxis(n, angleDelta);
-      //   rotationMatrix.multiply(_this.object.matrix);
-      //  _this.object.rotation.setFromRotationMatrix(rotationMatrix, _this.camera.rotation.order);
-      // };
+      // TODO: apply correct rotation to object      
+      var t = new THREE.Vector3().subVectors(_this.camera.position, _this.object.position);
+      angleDelta = _this.rotateTransform(yDelta);
+      newAngle = t.angleTo(new THREE.Vector3(0, 1, 0)) + angleDelta;
+      if (_this.rotateMin < newAngle && newAngle < _this.rotateMax) {
+        var n = new THREE.Vector3(t.z, 0, -t.x).normalize();
+        var rotationMatrix = new THREE.Matrix4();
+        rotationMatrix.makeRotationAxis(n, angleDelta);
+        rotationMatrix.multiply(_this.object.matrix);
+       _this.object.rotation.setFromRotationMatrix(rotationMatrix, _this.camera.rotation.order);
+      };
 
       // rotate around y-axis 
       var x = _this.position(frame, 'rotate')[0];

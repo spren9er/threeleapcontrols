@@ -17,7 +17,7 @@
       var camera, scene, renderer, projector, light;
       var objects = [], objectsControls = [], cameraControls;
       var coords1, coords2, coords3;
-      var lastControlsIndex = -1, controlsIndex = -1, index = -1;
+      var lastControlsIndex = -1, controlsIndex = -1, index = -1
 
       function init() {
         // is webgl supported?
@@ -34,9 +34,9 @@
 
         // camera
         camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 10000);
-        camera.position.x = 350;
-        camera.position.y = 350;
-        camera.position.z = 350;
+        camera.position.x = 500;
+        camera.position.y = 500;
+        camera.position.z = 500;
         var origin = new THREE.Vector3(0, 0, 0);
         camera.lookAt(origin);
 
@@ -85,10 +85,10 @@
         scene.add(coords);
 
         // cubes
-        for (var i = 0; i < 10; i ++) {
+        for (var i = 0; i < 20; i ++) {
           var geometry = new THREE.CubeGeometry(Math.random()*60, Math.random()*60, Math.random()*60);
           var object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({color: 0xefefef}));
-          object.position.x = Math.random()* 400 - 200;
+          object.position.x = Math.random()* 300 - 150;
           object.position.y = Math.random()* 300 - 150;
           object.position.z = Math.random()* 200 - 100;
 
@@ -157,25 +157,21 @@
         });                 
       };
 
-      setInterval(function(){
+      setInterval(changeControlsIndex, 500);
+      
+      function changeControlsIndex() {
         if (lastControlsIndex == controlsIndex) {
           if (index != controlsIndex && controlsIndex > -2) {
             // new object or camera to control
-            if (controlsIndex == -1) {
-              showOverlay("Switched to Camera Mode");
-            } else {
-              showOverlay("Switched to Object Mode: Object " + controlsIndex);
-            };
-            if (controlsIndex > -2) index = controlsIndex;
+            if (controlsIndex > -2) {
+              if (index > -1) objects[index].material.color.setHex(0xefefef);
+              index = controlsIndex;
+              if (index > -1) objects[index].material.color.setHex(0xff0000);
+            }
           };
         }; 
         lastControlsIndex = controlsIndex;
-      }, 500);
-      
-      function showOverlay(text) {
-        $("#overlay").html(text);
-        $("#overlay").show().fadeOut(800);
-      };      
+      };
 
       function showCursor(frame) {
         var width = 150;

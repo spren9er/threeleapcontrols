@@ -60,10 +60,11 @@ canvas {
   left: -1000px;
   top: -1000px;
   z-index: 100;
-  width: 11px;
-  height: 11px;
-  background-color: #ff0000;
+  width: 9px;
+  height: 9px;
+  background-color: #ffffff;
   border-radius: 6px; 
   -moz-border-radius: 6px; 
-  -webkit-border-radius: 6px; 
+  -webkit-border-radius: 6px;
+  border: 1px solid #ff0000; 
 }
