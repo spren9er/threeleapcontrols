@@ -17,7 +17,7 @@
       var camera, scene, renderer, projector, light;
       var objects = [], objectsControls = [], cameraControls;
       var coords1, coords2, coords3;
-      var lastControlsIndex = -1, controlsIndex = -1, index = -1
+      var lastControlsIndex = -1, controlsIndex = -1, index = -1;
 
       function init() {
         // is webgl supported?
@@ -151,7 +151,7 @@
           coords1.position = cameraControls.target;
           coords2.position = cameraControls.target;
           coords3.position = cameraControls.target;
-          light.position = camera.position;
+          light.position   = camera.position;
 
           render();
         });                 
@@ -256,7 +256,7 @@
 
       <h4>Switch between Camera &amp; Object Mode</h4>
 
-      <b>SWITCH</b> ➞ 1 Hand &amp; 1 Finger &amp; Choose object or nothing
+      <b>SWITCHING</b> ➞ 1 Hand &amp; 1 Finger &amp; Choose object or nothing
     </div>
     <div id="container"></div>
     <div id="overlay"></div>
