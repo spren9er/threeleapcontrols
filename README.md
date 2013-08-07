@@ -94,7 +94,7 @@ You can set the minimum and maximum distances for zooming with `zoomMin` and `zo
 The default values are
 
 ```javascript
-  // rotation
+// rotation
 this.rotateEnabled       = true;
 this.rotateSpeed         = 1.0;
 this.rotateHands         = 1;
