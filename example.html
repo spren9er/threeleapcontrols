@@ -29,6 +29,7 @@
         // renderer
         renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0xffffff, 1);
         var container = document.getElementById('container');
         container.appendChild(renderer.domElement);
 
