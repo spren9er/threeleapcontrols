@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link href='http://fonts.googleapis.com/css?family=Fauna+One' rel='stylesheet' type='text/css'>
     <link href='css/style.css' rel='stylesheet' type='text/css'>
-    <script src="js/Detector.js"></script>
-    <script src="js/jquery.min.js"></script>
-    <script src="js/three.min.js"></script>
-    <script src="js/leap.min.js"></script>
-    <script src="LeapCameraControls.js"></script>
-    <script src="LeapObjectControls.js"></script>
-    <script>
+    <script type="text/javascript" src="js/Detector.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/three.min.js"></script>
+    <script type="text/javascript" src="js/leap.min.js"></script>
+    <script type="text/javascript" src="LeapCameraControls.js"></script>
+    <script type="text/javascript" src="LeapObjectControls.js"></script>
+    <script type="text/javascript">
       var camera, scene, renderer, projector, light;
       var objects = [], objectsControls = [], cameraControls;
       var coords1, coords2, coords3;
@@ -132,31 +132,6 @@
 
         // render (if no leap motion controller is detected, then this call is needed in order to see the plot)
         render();
-
-        // leap loop
-        Leap.loop(function(frame) {
-          // show cursor
-          showCursor(frame);
-
-          // set correct camera control
-          controlsIndex = focusObject(frame);
-          if (index == -1) {
-            cameraControls.update(frame);
-          } else {
-            objectsControls[index].update(frame);
-          };
-
-          // custom modifications (here: show coordinate system always on target and light movement)
-          coords1.position = cameraControls.target;
-          coords2.position = cameraControls.target;
-          coords3.position = cameraControls.target;
-          light.position   = camera.position;
-
-          render();
-        });
-
-        // detect controls change
-        setInterval(changeControlsIndex, 250);
       };
       
       function changeControlsIndex() {
@@ -241,10 +216,39 @@
         renderer.setSize($(window).width(), $(window).height());
         render();
       };
+
+      $(function(){
+        init();
+
+        // leap loop
+        Leap.loop(function(frame) {
+          // show cursor
+          showCursor(frame);
+
+          // set correct camera control
+          controlsIndex = focusObject(frame);
+          if (index == -1) {
+            cameraControls.update(frame);
+          } else {
+            objectsControls[index].update(frame);
+          };
+
+          // custom modifications (here: show coordinate system always on target and light movement)
+          coords1.position = cameraControls.target;
+          coords2.position = cameraControls.target;
+          coords3.position = cameraControls.target;
+          light.position   = camera.position;
+
+          render();
+        });
+
+        // detect controls change
+        setInterval(changeControlsIndex, 250);
+      });
     </script>   
   </head>
 
-  <body onload="init()">
+  <body>
     <div id="info">
       <h3><b>threeleapcontrols</b> ・ <a href="http://leapmotion.com">Leap</a> Controls for <a href="http://threejs.org">Three.js</a></h3>
 
@@ -257,7 +261,6 @@
       <b>SWITCHING</b> ➞ 1 Hand &amp; 1 Finger &amp; Choose object or nothing
     </div>
     <div id="container"></div>
-    <div id="overlay"></div>
     <div id="cursor"></div>
   </body>
 </html>
