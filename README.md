@@ -15,6 +15,9 @@ any camera or object in your 3D scene.
 - [Three.js](http://threejs.org) (javascript library for creating and displaying 3D computer graphics on a browser)
 - a browser which supports WebGL, e.g. Google Chrome
 
+## Showcase
+
+Check out the example file `example.html` and/or see it in action [here](http://youtu.be/SQDAa-cqlrA).
 
 ## Usage
 
@@ -67,6 +70,7 @@ Leap.loop(function(frame){
   renderer.render(scene, camera);
 });
 ```
+**Note**: Rotating objects with `LeapObjectControls` is work in progress and not yet finished!
 
 ### Configuration
 
@@ -123,10 +127,4 @@ this.panRightHanded      = true;
 this.panHandPosition     = true;
 ```
 
-In your leap object controls the zoom options are scale options, i.e. `zoomEnabled` will be `scaleEnabled`, and so on.
-
-**Note**: Rotating objects with `LeapObjectControls` is not yet finished!
-
-### Example
-
-Check out the example `example.html`.
+In your leap object controls the zoom options are scale options, i.e. `zoomEnabled` will be `scaleEnabled`, etc..
