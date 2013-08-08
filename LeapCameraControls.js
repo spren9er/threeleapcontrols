@@ -13,7 +13,7 @@ THREE.LeapCameraControls = function(camera) {
   // api
   this.enabled      = true;
   this.target       = new THREE.Vector3(0, 0, 0);
-  this.step         = (camera.position.z == 0 ? Math.pow(10, (Math.log(camera.near) + Math.log(camera.far)) / Math.log(10)) / 10.0 : camera.position.z);
+  this.step         = (camera.position.z == 0 ? Math.pow(10, (Math.log(camera.near) + Math.log(camera.far))/Math.log(10))/10.0 : camera.position.z);
   this.fingerFactor = 2;
 
   // `...Hands`       : integer or range given as an array of length 2
