@@ -6,7 +6,7 @@ body {
 
 h3 {font-weight: normal;}
 
-a {color: red;}
+a {color: #ff0000;}
 
 #info {
   position: absolute;
@@ -15,7 +15,7 @@ a {color: red;}
   left: 50%;
   text-align: center;
   overflow: hidden;
-  z-index: 1;
+  z-index: 2;
 }
 
 #container {
@@ -39,27 +39,11 @@ canvas {
   width: 100%;
 }
 
-#overlay {
-  display: none;
-  position: absolute;
-  color: #333333;
-  z-index: 2;
-  width: 400px;
-  height: 100px;
-  margin-left: -200px;
-  margin-top: -50px;
-  top: 50%;
-  left: 50%;
-  text-align: center;
-  font-weight: bold;
-  font-size: 26px;
-}
-
 #cursor {
   position: absolute;
   left: -1000px;
   top: -1000px;
-  z-index: 100;
+  z-index: 1;
   width: 9px;
   height: 9px;
   background-color: #ffffff;

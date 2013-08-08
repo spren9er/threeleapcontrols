@@ -28,13 +28,12 @@
 
         // renderer
         renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize($(window).width(), $(window).height());
         renderer.setClearColor(0xffffff, 1);
-        var container = document.getElementById('container');
-        container.appendChild(renderer.domElement);
+        $("#container").append(renderer.domElement);
 
         // camera
-        camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 10000);
+        camera = new THREE.PerspectiveCamera(25, $(window).width()/$(window).height(), 0.1, 10000);
         camera.position.x = 500;
         camera.position.y = 500;
         camera.position.z = 500;
@@ -97,7 +96,6 @@
           object.rotation.y = Math.random()*2*Math.PI;
           object.rotation.z = Math.random()*2*Math.PI;
 
-          object.castShadow = true;
           object.receiveShadow = true;
 
           // leap object controls
@@ -155,10 +153,11 @@
           light.position   = camera.position;
 
           render();
-        });                 
-      };
+        });
 
-      setInterval(changeControlsIndex, 250);
+        // detect controls change
+        setInterval(changeControlsIndex, 250);
+      };
       
       function changeControlsIndex() {
         if (lastControlsIndex == controlsIndex) {
@@ -174,10 +173,21 @@
         lastControlsIndex = controlsIndex;
       };
 
-      function showCursor(frame) {
+      function transform(tipPosition, w, h) {
         var width = 150;
         var height = 150;
         var minHeight = 100;
+
+        var ftx = tipPosition[0];
+        var fty = tipPosition[1];
+        ftx = (ftx > width ? width - 1 : (ftx < -width ? -width + 1 : ftx));
+        fty = (fty > 2*height ? 2*height - 1 : (fty < minHeight ? minHeight + 1 : fty));
+        var x = THREE.Math.mapLinear(ftx, -width, width, 0, w);
+        var y = THREE.Math.mapLinear(fty, 2*height, minHeight, 0, h);
+        return [x, y];
+      };
+
+      function showCursor(frame) {
         var hl = frame.hands.length;
         var fl = frame.pointables.length;
 
@@ -185,14 +195,9 @@
           var f = frame.pointables[0];
           var cont = $(renderer.domElement);
           var offset = cont.offset();
-          var fTPX = f.tipPosition[0];
-          var fTPY = f.tipPosition[1];
-          var fX = (fTPX > width ? width - 1 : (fTPX < -width ? -width + 1 : fTPX));
-          var fY = (fTPY > 2*height ? 2*height - 1 : (fTPY < minHeight ? minHeight + 1 : fTPY));
-          var x = offset.left + THREE.Math.mapLinear(fX, -width, width, 0, cont.width());
-          var y = offset.top + THREE.Math.mapLinear(fY, 2*height, minHeight, 0, cont.height());
-          $("#cursor").css('left', x - (($("#cursor").width() - 1)/2 + 1));
-          $("#cursor").css('top', y - (($("#cursor").height() - 1)/2 + 1));
+          var coords = transform(f.tipPosition, cont.width(), cont.height());
+          $("#cursor").css('left', offset.left + coords[0] - (($("#cursor").width() - 1)/2 + 1));
+          $("#cursor").css('top', offset.top + coords[1] - (($("#cursor").height() - 1)/2 + 1));
         } else {
           $("#cursor").css('left', -1000);
           $("#cursor").css('top', -1000);
@@ -200,23 +205,15 @@
       };
 
       function focusObject(frame) {
-        var width = 150;
-        var height = 150;
-        var minHeight = 100;
         var hl = frame.hands.length;
         var fl = frame.pointables.length;
 
         if (hl == 1 && fl == 1) {
           var f = frame.pointables[0];
           var cont = $(renderer.domElement);
-          var fTPX = f.tipPosition[0];
-          var fTPY = f.tipPosition[1];
-          var fX = (fTPX > width ? width - 1 : (fTPX < -width ? -width + 1 : fTPX));
-          var fY = (fTPY > 2*height ? 2*height - 1 : (fTPY < minHeight ? minHeight + 1 : fTPY));
-          var x = THREE.Math.mapLinear(fX, -width, width, 0, cont.width());
-          var y = THREE.Math.mapLinear(fY, 2*height, minHeight, 0, cont.height());
-          var vpx = (x/cont.width())*2 - 1;
-          var vpy = -(y/cont.height())*2 + 1;
+          var coords = transform(f.tipPosition, cont.width(), cont.height());
+          var vpx = (coords[0]/cont.width())*2 - 1;
+          var vpy = -(coords[1]/cont.height())*2 + 1;
           var vector = new THREE.Vector3(vpx, vpy, 0.5);
           projector.unprojectVector(vector, camera);
           var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
@@ -239,9 +236,9 @@
       };
 
       function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = $(window).width()/$(window).height();
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize($(window).width(), $(window).height());
         render();
       };
     </script>   
