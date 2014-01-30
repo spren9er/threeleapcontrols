@@ -107,6 +107,7 @@ this.rotateRightHanded   = true;
 this.rotateHandPosition  = true;
 this.rotateMin           = 0;
 this.rotateMax           = Math.PI;
+this.rotateStabilized    = false;
 
 // zoom
 this.zoomEnabled         = true;
@@ -115,8 +116,9 @@ this.zoomHands           = 1;
 this.zoomFingers         = [4, 5];
 this.zoomRightHanded     = true;
 this.zoomHandPosition    = true;
-this.zoomMin             = camera.near;
-this.zoomMax             = camera.far;
+this.zoomMin             = _this.camera.near;
+this.zoomMax             = _this.camera.far;
+this.zoomStabilized      = false;
 
 // pan
 this.panEnabled          = true;
@@ -125,6 +127,7 @@ this.panHands            = 2;
 this.panFingers          = [6, 12];
 this.panRightHanded      = true;
 this.panHandPosition     = true;
+this.panStabilized       = false;
 ```
 
 In your leap object controls the zoom options are scale options, i.e. `zoomEnabled` will be `scaleEnabled`, etc..

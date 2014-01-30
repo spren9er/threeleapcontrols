@@ -183,13 +183,22 @@ THREE.LeapObjectControls = function(camera, object) {
     switch(action) {
       case 'rotate':
         h = _this.hand(frame, 'rotate');
-        return (_this.rotateHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
-      case 'scale':
-        h = _this.hand(frame, 'scale');
-        return (_this.scaleHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+        return (_this.rotateHandPosition 
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
+      case 'zoom':
+        h = _this.hand(frame, 'zoom');
+        return (_this.zoomHandPosition 
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
       case 'pan':
         h = _this.hand(frame, 'pan');
-        return (_this.panHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+        return (_this.panHandPosition
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
     };
   };
 

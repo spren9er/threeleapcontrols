@@ -30,6 +30,7 @@ THREE.LeapCameraControls = function(camera) {
   this.rotateHandPosition  = true;
   this.rotateMin           = 0;
   this.rotateMax           = Math.PI;
+  this.rotateStabilized    = false;
   
   // zoom
   this.zoomEnabled         = true;
@@ -40,6 +41,7 @@ THREE.LeapCameraControls = function(camera) {
   this.zoomHandPosition    = true;
   this.zoomMin             = _this.camera.near;
   this.zoomMax             = _this.camera.far;
+  this.zoomStabilized      = false;
   
   // pan
   this.panEnabled          = true;
@@ -48,6 +50,7 @@ THREE.LeapCameraControls = function(camera) {
   this.panFingers          = [6, 12];
   this.panRightHanded      = true;
   this.panHandPosition     = true;
+  this.panStabilized       = false;
   
   // internals
   var _rotateXLast         = null;
@@ -183,13 +186,22 @@ THREE.LeapCameraControls = function(camera) {
     switch(action) {
       case 'rotate':
         h = _this.hand(frame, 'rotate');
-        return (_this.rotateHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+        return (_this.rotateHandPosition 
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
       case 'zoom':
         h = _this.hand(frame, 'zoom');
-        return (_this.zoomHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+        return (_this.zoomHandPosition 
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
       case 'pan':
         h = _this.hand(frame, 'pan');
-        return (_this.panHandPosition ? h.palmPosition : frame.pointables[0].tipPosition);
+        return (_this.panHandPosition
+          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+        );
     };
   };
 
