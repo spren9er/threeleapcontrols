@@ -19,7 +19,8 @@ THREE.LeapCameraControls = function(camera) {
   // `...Hands`       : integer or range given as an array of length 2
   // `...Fingers`     : integer or range given as an array of length 2
   // `...RightHanded` : boolean indicating whether to use left or right hand for controlling (if number of hands > 1)
-  // `...HandPosition`: boolean indication whether to use palm position or finger tip position (if number of fingers == 1)
+  // `...HandPosition`: boolean indicating whether to use palm position or finger tip position (if number of fingers == 1)
+  // `...Stabilized`  : boolean indicating whether to use stabilized palm/finger tip position or not
 
   // rotation
   this.rotateEnabled       = true;
@@ -28,9 +29,9 @@ THREE.LeapCameraControls = function(camera) {
   this.rotateFingers       = [2, 3]; 
   this.rotateRightHanded   = true;
   this.rotateHandPosition  = true;
+  this.rotateStabilized    = false;
   this.rotateMin           = 0;
   this.rotateMax           = Math.PI;
-  this.rotateStabilized    = false;
   
   // zoom
   this.zoomEnabled         = true;
@@ -39,9 +40,9 @@ THREE.LeapCameraControls = function(camera) {
   this.zoomFingers         = [4, 5];
   this.zoomRightHanded     = true;
   this.zoomHandPosition    = true;
+  this.zoomStabilized      = false;
   this.zoomMin             = _this.camera.near;
   this.zoomMax             = _this.camera.far;
-  this.zoomStabilized      = false;
   
   // pan
   this.panEnabled          = true;
@@ -193,14 +194,14 @@ THREE.LeapCameraControls = function(camera) {
       case 'zoom':
         h = _this.hand(frame, 'zoom');
         return (_this.zoomHandPosition 
-          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
-          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+          ? (_this.zoomStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.zoomStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
         );
       case 'pan':
         h = _this.hand(frame, 'pan');
         return (_this.panHandPosition
-          ? (_this.rotateStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
-          : (_this.rotateStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
+          ? (_this.panStabilized ? h.stabilizedPalmPosition : h.palmPosition) 
+          : (_this.panStabilized ? frame.pointables[0].stabilizedTipPosition : frame.pointables[0].tipPosition)
         );
     };
   };

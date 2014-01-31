@@ -84,12 +84,13 @@ controls.panHands        = 2;
 controls.panFingers      = [6, 12];
 controls.panRightHanded  = true; // right-handed
 controls.panHandPosition = true; // palm position used
+controls.panStabilized   = true; // stabilized palm position used
 ```
 
 You can disable panning by setting `panEnabled` to `false`. Increase or decrease the speed of panning by adjusting
 `panSpeed`. You can set the number of hands with option `panHands`, i.e. the gesture is only triggered if the number of hands over your leap is equal to 
 the specified `panHands`. It is possible to use a range of numbers (array of length 2 with integers), e.g. if `[1, 2]` is given, panning will be done, if one or two hands
-are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. If you set `panFingers` to 1 or `[1, 1]` and `panHandPosition` to `false`, then the position of your finger tip will be used (instead of the position of your palm).
+are used. The same goes for `panFingers`. If you set `panHands` to 2, then you can specify via `panRightHanded`, which hand will be used for controlling the camera. If you set `panFingers` to 1 or `[1, 1]` and `panHandPosition` to `false`, then the position of your finger tip will be used (instead of the position of your palm). If you set `panStabilized` to true the stabilized palm or finger tip position is used.
 
 By default vertical rotating is bounded to a range of π, meaning the angle between the camera-to-target vector and the y-axis is greater than 0 and less than π. You can modify the range by setting `rotateMin` and `rotateMax`. Horizontal rotating is not limited.
 
@@ -105,9 +106,9 @@ this.rotateHands         = 1;
 this.rotateFingers       = [2, 3]; 
 this.rotateRightHanded   = true;
 this.rotateHandPosition  = true;
+this.rotateStabilized    = false;
 this.rotateMin           = 0;
 this.rotateMax           = Math.PI;
-this.rotateStabilized    = false;
 
 // zoom
 this.zoomEnabled         = true;
@@ -116,9 +117,9 @@ this.zoomHands           = 1;
 this.zoomFingers         = [4, 5];
 this.zoomRightHanded     = true;
 this.zoomHandPosition    = true;
+this.zoomStabilized      = false;
 this.zoomMin             = _this.camera.near;
 this.zoomMax             = _this.camera.far;
-this.zoomStabilized      = false;
 
 // pan
 this.panEnabled          = true;
